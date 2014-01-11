@@ -86,13 +86,14 @@ public class ServerThread extends Thread {
 			}
 			else if(requestType.equals("POST")){
 				int contentLength = -1;
+				String contentLengthPrefix = "Content-Length: ";
+				
 				while (true) {
 					String line = getter.readLine();
-					//System.out.println(line);
+					System.out.println(line);
 
-					String contentLengthStr = "Content-Length: ";
-					if (line.startsWith(contentLengthStr)) {
-						contentLength = Integer.parseInt(line.substring(contentLengthStr.length()));
+					if (line.startsWith(contentLengthPrefix)) {
+						contentLength = Integer.parseInt(line.substring(contentLengthPrefix.length()));
 					}
 
 					if (line.length() == 0) {
@@ -109,21 +110,23 @@ public class ServerThread extends Thread {
 				sender.writeBytes("Content-Type: " + mimeType + "\r\n");
 				sender.writeBytes("Content-Length: " + (numOfBytes + charPostParameters.length) + "\r\n");
 				sender.writeBytes("\r\n");
-				sender.writeBytes(strPostParameters + "\r\n");
-				sender.writeBytes("\r\n");
 
+				sender.writeBytes(strPostParameters);
 				sender.write(fileBuffer, 0, numOfBytes);
 			}
 			else {
 				System.out.println("Bad Request");
 
 				sender.writeBytes("HTTP/1.1 400 Bad Request Mesage \r\n");
-				sender.writeBytes("Connection: close\r\n");
+				sender.writeBytes("ERROR: close\r\n");
 				sender.writeBytes("\r\n");
 			}
 
 			connectionSocket.close();
 			System.out.println("Connection Closed");
+			
+			getter.close();
+			sender.close();
 		}
 		catch(IOException e) {
 			e.printStackTrace();
